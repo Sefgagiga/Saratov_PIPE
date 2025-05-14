@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Карта пищевой промышленности</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100vw; height: 100vh; }
+        #status { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000; 
+        }
+        .leaflet-tooltip {
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            white-space: nowrap;
+            margin-left: 20px !important;
+        }
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 480px; /* Увеличено на 60% */
+            margin-bottom: 15px;
+        }
+        .panel-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .panel-subtitle {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .categories-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .category-column {
+            display: flex;
+            flex-direction: column;
+            margin-right: 15px;
+        }
+        .category-column:last-child {
+            margin-right: 0;
+        }
+        .category-item {
+            display: flex;
+            align-items: center;
+            margin: 0 0 5px 0; /* margin-bottom 5px */
+        }
+        .category-img {
+            width: 50px;
+            height: 50px;
+            margin-right: 8px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="status">Загрузка карты</div>
+    <div class="info-panel">
+        <div class="panel-title">Карта пищевой промышленности Саратовской области</div>
+        <div class="panel-subtitle">Отрасли пищевой промышленности</div>
+        <div class="categories-container">
+            <div class="category-column">
+                <div class="category-item">
+                    <img src="ПП/Хлебобулочная.png" class="category-img" alt="Хлебобулочная">
+                    <span>Хлебобулочная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Мукольно-крупяная.png" class="category-img" alt="Мукольно-крупяная">
+                    <span>Мукольно-крупяная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Молочная.png" class="category-img" alt="Молочная">
+                    <span>Молочная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Маслосыродельная.png" class="category-img" alt="Маслосыродельная">
+                    <span>Маслосыродельная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Мясная.png" class="category-img" alt="Мясная">
+                    <span>Мясная</span>
+                </div>
+            </div>
+            <div class="category-column">
+                <div class="category-item">
+                    <img src="ПП/Сахарная.png" class="category-img" alt="Сахарная">
+                    <span>Сахарная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Масложировая.png" class="category-img" alt="Масложировая">
+                    <span>Масложировая</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Плодово-овощная.png" class="category-img" alt="Плодово-овощная">
+                    <span>Плодово-овощная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Консервная.png" class="category-img" alt="Консервная">
+                    <span>Консервная</span>
+                </div>
+            </div>
+            <div class="category-column">
+                <div class="category-item">
+                    <img src="ПП/Пивоваренная.png" class="category-img" alt="Пивоваренная">
+                    <span>Пивоваренная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Производство безалкогольных напитков.png" class="category-img" alt="Производство безалкогольных напитков">
+                    <span>Безалкогольные напитки</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Кондитерская.png" class="category-img" alt="Кондитерская">
+                    <span>Кондитерская</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Многопрофильная.png" class="category-img" alt="Многопрофильная">
+                    <span>Многопрофильная</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация карты с центром на Саратове и zoom=8
+        var map = L.map('map').setView([51.822, 46.443], 8);
+        
+        // Создаем слой с картой OSM
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        // Функция для определения размеров иконки по ID
+        function getIconSize(id) {
+            id = parseInt(id);
+            
+            if ([8,9,11,15,17,18,19,30].includes(id)) return [150, 50];
+            else if ([12,13,14,16].includes(id)) return [100, 100];
+            else if (id === 10) return [150, 100];
+            else if (id >= 20 && id <= 27) return [100, 50];
+            return [50, 50];
+        }
+
+        // Создаем иконки для точек Town
+        function createCustomIcon(feature) {
+            const id = feature.properties.id || 1;
+            const iconSize = getIconSize(id);
+            
+            return L.icon({
+                iconUrl: `Значки/${id}.png`,
+                iconSize: iconSize,
+                iconAnchor: [iconSize[0]/2, iconSize[1]/2],
+                popupAnchor: [0, -iconSize[1]/2]
+            });
+        }
+
+        // Функция для создания содержимого всплывающей подсказки
+        function createTooltipContent(feature) {
+            if (!feature.properties) return '';
+            
+            let content = `<div style="font-weight:bold;margin-bottom:5px;">${feature.properties.Город || ''}</div>`;
+            
+            // Получаем все свойства, которые содержат '1' (кроме стандартных)
+            const excludedProps = ['id', 'Город', 'название'];
+            let activeCategories = [];
+            
+            for (const [key, value] of Object.entries(feature.properties)) {
+                if (!excludedProps.includes(key) && value === '1') {
+                    activeCategories.push(key);
+                }
+            }
+            
+            if (activeCategories.length > 0) {
+                content += '<div style="border-top:1px solid #eee;margin-top:5px;padding-top:5px;">';
+                content += activeCategories.join('<br>');
+                content += '</div>';
+            }
+            
+            return content;
+        }
+
+        // Создаем слои
+        var layers = {
+            graniza: L.layerGroup(),
+            graniza_2: L.layerGroup(),
+            g_line: L.layerGroup(),
+            g_sq: L.layerGroup(),
+            town: L.layerGroup()
+        };
+
+        // Создаем кастомные панели для контроля порядка слоев
+        map.createPane('granizaPane');
+        map.createPane('graniza2Pane');
+        map.createPane('gLinePane');
+        map.createPane('gSqPane');
+        map.createPane('townPane');
+        
+        // Устанавливаем z-index для порядка слоев
+        map.getPane('granizaPane').style.zIndex = 400;
+        map.getPane('graniza2Pane').style.zIndex = 410;
+        map.getPane('gLinePane').style.zIndex = 420;
+        map.getPane('gSqPane').style.zIndex = 430;
+        map.getPane('townPane').style.zIndex = 450;
+
+        // Стили для слоёв
+        const layerStyles = {
+            'Graniza.geojson': {
+                fillColor: '#dfffc1',
+                weight: 0.3,
+                opacity: 1,
+                color: 'black',
+                dashArray: '5,5',
+                fillOpacity: 1,
+                pane: 'granizaPane'
+            },
+            'Graniza_2.geojson': {
+                fillColor: 'transparent',
+                weight: 5,
+                opacity: 1,
+                color: '#fb9a99',
+                fillOpacity: 0,
+                pane: 'graniza2Pane'
+            },
+            'G_Line.geojson': {
+                color: '#1f78b4',
+                weight: 0.3,
+                opacity: 1,
+                pane: 'gLinePane'
+            },
+            'G_Sq.geojson': {
+                fillColor: '#a6cee3',
+                weight: 0.3,
+                opacity: 1,
+                color: '#1f78b4',
+                fillOpacity: 0.7,
+                pane: 'gSqPane'
+            },
+            'Town.geojson': {
+                pane: 'townPane',
+                pointToLayer: function(feature, latlng) {
+                    const marker = L.marker(latlng, {
+                        icon: createCustomIcon(feature),
+                        riseOnHover: true
+                    });
+                    
+                    // Добавляем всплывающую подсказку при наведении
+                    if (feature.properties) {
+                        marker.bindTooltip(createTooltipContent(feature), {
+                            direction: 'right',
+                            permanent: false,
+                            sticky: true,
+                            className: 'custom-tooltip',
+                            offset: [20, 0]
+                        });
+                        
+                        // Добавляем всплывающее окно с дополнительной информацией
+                        let popupContent = `<b>${feature.properties.Город || ''}</b><br>`;
+                        for (const [key, value] of Object.entries(feature.properties)) {
+                            if (!['id', 'Город', 'название'].includes(key)) {
+                                popupContent += `<b>${key}:</b> ${value}<br>`;
+                            }
+                        }
+                        marker.bindPopup(popupContent);
+                    }
+                    
+                    return marker;
+                }
+            }
+        };
+
+        let loadedLayers = 0;
+        const totalLayers = Object.keys(layerStyles).length;
+
+        // Функция для загрузки слоёв
+        async function loadLayers() {
+            // Порядок загрузки соответствует порядку отображения (снизу вверх)
+            const loadOrder = [
+                'Graniza.geojson',
+                'Graniza_2.geojson',
+                'G_Line.geojson',
+                'G_Sq.geojson',
+                'Town.geojson'
+            ];
+            
+            for (const url of loadOrder) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
+                    
+                    const data = await response.json();
+                    const layerKey = url.split('.')[0].toLowerCase().replace('_', '');
+                    
+                    L.geoJSON(data, {
+                        ...layerStyles[url],
+                        onEachFeature: function(feature, layer) {
+                            layers[layerKey].addLayer(layer);
+                        }
+                    });
+                    
+                    loadedLayers++;
+                    updateStatus();
+                } catch (error) {
+                    console.error(`❌ Ошибка загрузки ${url}:`, error);
+                    updateStatus(`Ошибка: ${url}`);
+                }
+            }
+
+            // Добавляем слои на карту в правильном порядке
+            osmLayer.addTo(map);
+            layers.graniza.addTo(map);
+            layers.graniza_2.addTo(map);
+            layers.g_line.addTo(map);
+            layers.g_sq.addTo(map);
+            layers.town.addTo(map);
+        }
+
+        function updateStatus(error) {
+            const statusEl = document.getElementById('status');
+            if (error) {
+                statusEl.innerHTML += `<div style="color:red">${error}</div>`;
+            } else {
+                statusEl.textContent = `Загружено ${loadedLayers} из ${totalLayers} слоёв`;
+                if (loadedLayers === totalLayers) {
+                    statusEl.style.color = 'green';
+                    setTimeout(() => statusEl.style.display = 'none', 2000);
+                }
+            }
+        }
+
+        // Запуск загрузки
+        loadLayers();
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Карта пищевой промышленности</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100vw; height: 100vh; }
+        #status { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000; 
+        }
+        .leaflet-tooltip {
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="status">Загрузка...</div>
+    
+    <script>
+        // Инициализация карты с центром на Саратове
+        var map = L.map('map').setView([51.822, 46.443], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Функция для определения размеров иконки по ID
+        function getIconSize(id) {
+            id = parseInt(id);
+            
+            // Группа 1: id 8,9,11,15,17,18,19,30 - высота 50мм, длина 150мм
+            if ([8,9,11,15,17,18,19,30].includes(id)) {
+                return [150, 50]; // [width, height]
+            }
+            // Группа 2: id 12,13,14,16 - высота 100мм, длина 100мм
+            else if ([12,13,14,16].includes(id)) {
+                return [100, 100];
+            }
+            // Группа 3: id 10 - высота 100мм, длина 150мм
+            else if (id === 10) {
+                return [150, 100];
+            }
+            // Группа 4: id 20-27 - высота 50мм, длина 100мм
+            else if (id >= 20 && id <= 27) {
+                return [100, 50];
+            }
+            // По умолчанию
+            return [50, 50];
+        }
+
+        // Создаем иконки для точек Town
+        function createCustomIcon(feature) {
+            const id = feature.properties.id || 1;
+            const iconSize = getIconSize(id);
+            
+            return L.icon({
+                iconUrl: `Значки/${id}.png`,
+                iconSize: iconSize,
+                iconAnchor: [iconSize[0]/2, iconSize[1]/2],
+                popupAnchor: [0, -iconSize[1]/2]
+            });
+        }
+
+        // Стили для слоёв
+        const layerStyles = {
+            'Graniza.geojson': {
+                fillColor: '#dfffc1',
+                weight: 0.3,
+                opacity: 1,
+                color: 'black',
+                dashArray: '5,5',
+                fillOpacity: 0.7
+            },
+            'Graniza_2.geojson': {
+                fillColor: 'transparent',
+                weight: 5,
+                opacity: 1,
+                color: '#fb9a99',
+                fillOpacity: 0
+            },
+            'G_Line.geojson': {
+                color: '#1f78b4',
+                weight: 0.3,
+                opacity: 1
+            },
+            'G_Sq.geojson': {
+                fillColor: '#a6cee3',
+                weight: 0.3,
+                opacity: 1,
+                color: '#1f78b4',
+                fillOpacity: 0.7
+            },
+            'Town.geojson': {
+                pointToLayer: function(feature, latlng) {
+                    // Создаем маркер с кастомной иконкой
+                    const marker = L.marker(latlng, {
+                        icon: createCustomIcon(feature)
+                    });
+                    
+                    // Добавляем подпись из свойства "Город"
+                    if (feature.properties && feature.properties.Город) {
+                        marker.bindTooltip(feature.properties.Город, {
+                            permanent: true,
+                            direction: 'right',
+                            offset: [10, 0]
+                        });
+                    }
+                    
+                    // Добавляем всплывающее окно с дополнительной информацией
+                    if (feature.properties) {
+                        let popupContent = '';
+                        for (const [key, value] of Object.entries(feature.properties)) {
+                            popupContent += `<b>${key}:</b> ${value}<br>`;
+                        }
+                        marker.bindPopup(popupContent);
+                    }
+                    
+                    return marker;
+                }
+            }
+        };
+
+        let loadedLayers = 0;
+        const totalLayers = Object.keys(layerStyles).length;
+
+        // Функция для загрузки слоёв
+        async function loadLayers() {
+            for (const [url, style] of Object.entries(layerStyles)) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
+                    
+                    const data = await response.json();
+                    L.geoJSON(data, style).addTo(map);
+                    
+                    loadedLayers++;
+                    updateStatus();
+                    console.log(`✅ ${url} загружен успешно`);
+                } catch (error) {
+                    console.error(`❌ Ошибка загрузки ${url}:`, error);
+                    updateStatus(`Ошибка: ${url}`);
+                }
+            }
+        }
+
+        function updateStatus(error) {
+            const statusEl = document.getElementById('status');
+            if (error) {
+                statusEl.innerHTML += `<div style="color:red">${error}</div>`;
+            } else {
+                statusEl.textContent = `Загружено ${loadedLayers} из ${totalLayers} слоёв`;
+                if (loadedLayers === totalLayers) {
+                    statusEl.style.color = 'green';
+                    setTimeout(() => statusEl.style.display = 'none', 2000);
+                }
+            }
+        }
+
+        // Запуск загрузки
+        loadLayers();
+    </script>
+</body>
+</html>
