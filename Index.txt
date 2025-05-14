@@ -14,7 +14,7 @@
             position: absolute; 
             top: 10px; 
             right: 10px; 
-            background: white; 
+            background: rgba(255,255,255,0.7); 
             padding: 10px; 
             border-radius: 5px; 
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
@@ -29,29 +29,63 @@
             white-space: nowrap;
             margin-left: 20px !important;
         }
+        .title-container {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 1000;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background-color: rgba(138, 43, 226, 0.8);
+            padding: 10px;
+            margin: 0 auto;
+            width: fit-content;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
         .info-panel {
             position: absolute;
             bottom: 20px;
             left: 20px;
             z-index: 1000;
-            background: white;
+            background: rgba(255,255,255,0.8);
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            width: 300px;
+            width: 570px;
+            margin-bottom: 20px;
         }
         .panel-header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-weight: bold;
+            font-size: 20px;
+            color: white;
+            background-color: rgba(138, 43, 226, 0.8);
+            padding: 8px;
+            border-radius: 5px;
         }
         .categories-container {
             display: flex;
             justify-content: space-between;
+            margin-top: 15px;
+            background-color: rgba(230, 230, 250, 0.8);
+            padding: 10px;
+            border-radius: 5px;
         }
         .category-column {
             display: flex;
             flex-direction: column;
+        }
+        .category-column:nth-child(1) .category-item {
+            margin-bottom: 5px;
+        }
+        .category-column:nth-child(2) .category-item,
+        .category-column:nth-child(3) .category-item {
+            margin-bottom: 15px;
         }
         .category-item {
             display: flex;
@@ -59,98 +93,102 @@
             margin: 3px 0;
         }
         .category-img {
-            width: 50px;
-            height: 50px;
-            margin-right: 5px;
+            width: 33px;
+            height: 33px;
+            margin-right: 8px;
             object-fit: contain;
+        }
+        .leaflet-popup-content {
+            min-width: 200px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <div id="status">Загрузка...</div>
+    <div class="title-container">Карта пищевой промышленности Саратовской области</div>
+    <div id="status">Загрузка карты</div>
     <div class="info-panel">
-        <div class="panel-header">Легенда карты</div>
+        <div class="panel-header">Отрасли пищевой промышленности</div>
         <div class="categories-container">
             <div class="category-column">
                 <div class="category-item">
-                    <img src="ПП/Хлеб.png" class="category-img" alt="Хлеб">
-                    <span>Хлеб</span>
+                    <img src="ПП/Хлебобулочная.png" class="category-img" alt="Хлебобулочная">
+                    <span>Хлебобулочная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Молоко.png" class="category-img" alt="Молоко">
-                    <span>Молоко</span>
+                    <img src="ПП/Мукольно-крупяная.png" class="category-img" alt="Мукольно-крупяная">
+                    <span>Мукольно-крупяная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Мясо.png" class="category-img" alt="Мясо">
-                    <span>Мясо</span>
+                    <img src="ПП/Молочная.png" class="category-img" alt="Молочная">
+                    <span>Молочная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Рыба.png" class="category-img" alt="Рыба">
-                    <span>Рыба</span>
+                    <img src="ПП/Маслосыродельная.png" class="category-img" alt="Маслосыродельная">
+                    <span>Маслосыродельная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Овощи.png" class="category-img" alt="Овощи">
-                    <span>Овощи</span>
-                </div>
-            </div>
-            <div class="category-column">
-                <div class="category-item">
-                    <img src="ПП/Фрукты.png" class="category-img" alt="Фрукты">
-                    <span>Фрукты</span>
-                </div>
-                <div class="category-item">
-                    <img src="ПП/Сахар.png" class="category-img" alt="Сахар">
-                    <span>Сахар</span>
-                </div>
-                <div class="category-item">
-                    <img src="ПП/Масло.png" class="category-img" alt="Масло">
-                    <span>Масло</span>
-                </div>
-                <div class="category-item">
-                    <img src="ПП/Соль.png" class="category-img" alt="Соль">
-                    <span>Соль</span>
+                    <img src="ПП/Мясная.png" class="category-img" alt="Мясная">
+                    <span>Мясная</span>
                 </div>
             </div>
             <div class="category-column">
                 <div class="category-item">
-                    <img src="ПП/Чай.png" class="category-img" alt="Чай">
-                    <span>Чай</span>
+                    <img src="ПП/Сахарная.png" class="category-img" alt="Сахарная">
+                    <span>Сахарная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Кофе.png" class="category-img" alt="Кофе">
-                    <span>Кофе</span>
+                    <img src="ПП/Масложировая.png" class="category-img" alt="Масложировая">
+                    <span>Масложировая</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Специи.png" class="category-img" alt="Специи">
-                    <span>Специи</span>
+                    <img src="ПП/Плодово-овощная.png" class="category-img" alt="Плодово-овощная">
+                    <span>Плодово-овощная</span>
                 </div>
                 <div class="category-item">
-                    <img src="ПП/Консервы.png" class="category-img" alt="Консервы">
-                    <span>Консервы</span>
+                    <img src="ПП/Консервная.png" class="category-img" alt="Консервная">
+                    <span>Консервная</span>
+                </div>
+            </div>
+            <div class="category-column">
+                <div class="category-item">
+                    <img src="ПП/Пивоваренная.png" class="category-img" alt="Пивоваренная">
+                    <span>Пивоваренная</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Производство безалкогольных напитков.png" class="category-img" alt="Производство безалкогольных напитков">
+                    <span>Производство безалкогольных напитков</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Кондитерская.png" class="category-img" alt="Кондитерская">
+                    <span>Кондитерская</span>
+                </div>
+                <div class="category-item">
+                    <img src="ПП/Многопрофильная.png" class="category-img" alt="Многопрофильная">
+                    <span>Многопрофильная</span>
                 </div>
             </div>
         </div>
     </div>
     
     <script>
-        // Инициализация карты с центром на Саратове
-        var map = L.map('map').setView([51.822, 46.443], 13);
+        // Инициализация карты с центром на Саратове и масштабом 8
+        var map = L.map('map').setView([51.822, 46.443], 8);
         
         // Создаем слой с картой OSM
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        });
+        }).addTo(map);
 
-        // Функция для определения размеров иконки по ID
+        // Функция для определения размеров иконки по ID (уменьшены в 1.5 раза)
         function getIconSize(id) {
             id = parseInt(id);
             
-            if ([8,9,11,15,17,18,19,30].includes(id)) return [150, 50];
-            else if ([12,13,14,16].includes(id)) return [100, 100];
-            else if (id === 10) return [150, 100];
-            else if (id >= 20 && id <= 27) return [100, 50];
-            return [50, 50];
+            if ([8,9,11,15,17,18,19,30].includes(id)) return [100, 33];
+            else if ([12,13,14,16].includes(id)) return [67, 67];
+            else if (id === 10) return [100, 67];
+            else if (id >= 20 && id <= 27) return [67, 33];
+            return [33, 33];
         }
 
         // Создаем иконки для точек Town
@@ -172,9 +210,9 @@
             
             let content = `<div style="font-weight:bold;margin-bottom:5px;">${feature.properties.Город || ''}</div>`;
             const categories = [
-                'Хлебобулочные', 'Молочные', 'Мясные', 'Рыбные', 'Овощные',
-                'Фруктовые', 'Сахарные', 'Масложировые', 'Соляные',
-                'Чайные', 'Кофейные', 'Специи', 'Консервные'
+                'Хлебобулочная', 'Мукольно-крупяная', 'Молочная', 'Маслосыродельная', 'Мясная',
+                'Сахарная', 'Масложировая', 'Плодово-овощная', 'Консервная',
+                'Пивоваренная', 'Производство безалкогольных напитков', 'Кондитерская', 'Многопрофильная'
             ];
             
             let activeCategories = [];
@@ -193,6 +231,31 @@
             return content;
         }
 
+        // Функция для создания содержимого popup
+        function createPopupContent(feature) {
+            if (!feature.properties) return '';
+            
+            let content = `<b>${feature.properties.Город || ''}</b><br><br>`;
+            
+            // Получаем все свойства кроме стандартных (id, Город) и тех, что равны null или пустые
+            const excludedProperties = ['id', 'Город'];
+            let activeProperties = [];
+            
+            for (const [key, value] of Object.entries(feature.properties)) {
+                if (!excludedProperties.includes(key) && value !== null && value !== '' && value !== undefined) {
+                    activeProperties.push(`• ${key}`);
+                }
+            }
+            
+            if (activeProperties.length > 0) {
+                content += activeProperties.join('<br>');
+            } else {
+                content += 'Нет дополнительных данных';
+            }
+            
+            return content;
+        }
+
         // Создаем слои
         var layers = {
             graniza: L.layerGroup(),
@@ -202,7 +265,21 @@
             town: L.layerGroup()
         };
 
-        // Стили для слоёв
+        // Создаем кастомные панели для контроля порядка слоев
+        map.createPane('granizaPane');
+        map.createPane('graniza2Pane');
+        map.createPane('gLinePane');
+        map.createPane('gSqPane');
+        map.createPane('townPane');
+        
+        // Устанавливаем z-index для слоев
+        map.getPane('granizaPane').style.zIndex = 400;
+        map.getPane('graniza2Pane').style.zIndex = 410;
+        map.getPane('gLinePane').style.zIndex = 420;
+        map.getPane('gSqPane').style.zIndex = 430;
+        map.getPane('townPane').style.zIndex = 440;
+
+        // Стили для слоёв с указанием панелей
         const layerStyles = {
             'Graniza.geojson': {
                 fillColor: '#dfffc1',
@@ -224,20 +301,23 @@
             'G_Line.geojson': {
                 color: '#1f78b4',
                 weight: 0.3,
-                opacity: 1
+                opacity: 1,
+                pane: 'gLinePane'
             },
             'G_Sq.geojson': {
                 fillColor: '#a6cee3',
                 weight: 0.3,
                 opacity: 1,
                 color: '#1f78b4',
-                fillOpacity: 0.7
+                fillOpacity: 0.7,
+                pane: 'gSqPane'
             },
             'Town.geojson': {
                 pointToLayer: function(feature, latlng) {
                     const marker = L.marker(latlng, {
                         icon: createCustomIcon(feature),
-                        riseOnHover: true
+                        riseOnHover: true,
+                        pane: 'townPane'
                     });
                     
                     // Добавляем всплывающую подсказку при наведении
@@ -250,14 +330,8 @@
                             offset: [20, 0]
                         });
                         
-                        // Добавляем всплывающее окно с дополнительной информацией
-                        let popupContent = `<b>${feature.properties.Город || ''}</b><br>`;
-                        for (const [key, value] of Object.entries(feature.properties)) {
-                            if (key !== 'Город') {
-                                popupContent += `<b>${key}:</b> ${value}<br>`;
-                            }
-                        }
-                        marker.bindPopup(popupContent);
+                        // Добавляем всплывающее окно
+                        marker.bindPopup(createPopupContent(feature));
                     }
                     
                     return marker;
@@ -265,67 +339,39 @@
             }
         };
 
-        // Создаем кастомные панели для контроля порядка слоев
-        map.createPane('granizaPane');
-        map.createPane('graniza2Pane');
-        map.getPane('granizaPane').style.zIndex = 410;
-        map.getPane('graniza2Pane').style.zIndex = 400;
-
         let loadedLayers = 0;
         const totalLayers = Object.keys(layerStyles).length;
 
-        // Функция для загрузки слоёв
-        async function loadLayers() {
-            // Сначала загружаем Graniza_2 (должна быть ниже)
+        // Функция для загрузки слоёв с обработкой ошибок
+        async function loadLayer(url, layerKey) {
             try {
-                const response = await fetch('Graniza_2.geojson');
-                if (!response.ok) throw new Error('Ошибка загрузки Graniza_2');
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
+                
                 const data = await response.json();
                 L.geoJSON(data, {
-                    ...layerStyles['Graniza_2.geojson'],
+                    ...layerStyles[url],
                     onEachFeature: function(feature, layer) {
-                        layers.graniza_2.addLayer(layer);
+                        layers[layerKey].addLayer(layer);
                     }
-                });
+                }).addTo(map);
+                
                 loadedLayers++;
                 updateStatus();
+                console.log(`✅ ${url} загружен успешно`);
             } catch (error) {
-                console.error('❌ Ошибка загрузки Graniza_2:', error);
-                updateStatus('Ошибка: Graniza_2');
+                console.error(`❌ Ошибка загрузки ${url}:`, error);
+                updateStatus(`Ошибка: ${url}`);
             }
+        }
 
-            // Затем загружаем остальные слои
-            const layersToLoad = ['Graniza.geojson', 'G_Line.geojson', 'G_Sq.geojson', 'Town.geojson'];
-            for (const url of layersToLoad) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
-                    
-                    const data = await response.json();
-                    const layerKey = url.split('.')[0].toLowerCase().replace('_', '');
-                    
-                    L.geoJSON(data, {
-                        ...layerStyles[url],
-                        onEachFeature: function(feature, layer) {
-                            layers[layerKey].addLayer(layer);
-                        }
-                    });
-                    
-                    loadedLayers++;
-                    updateStatus();
-                } catch (error) {
-                    console.error(`❌ Ошибка загрузки ${url}:`, error);
-                    updateStatus(`Ошибка: ${url}`);
-                }
-            }
-
-            // Добавляем слои на карту в правильном порядке
-            osmLayer.addTo(map);
-            layers.graniza_2.addTo(map);
-            layers.graniza.addTo(map);
-            layers.g_line.addTo(map);
-            layers.g_sq.addTo(map);
-            layers.town.addTo(map);
+        // Функция для загрузки всех слоёв
+        async function loadLayers() {
+            await loadLayer('Graniza.geojson', 'graniza');
+            await loadLayer('Graniza_2.geojson', 'graniza_2');
+            await loadLayer('G_Line.geojson', 'g_line');
+            await loadLayer('G_Sq.geojson', 'g_sq');
+            await loadLayer('Town.geojson', 'town');
         }
 
         function updateStatus(error) {

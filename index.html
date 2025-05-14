@@ -14,7 +14,7 @@
             position: absolute; 
             top: 10px; 
             right: 10px; 
-            background: white; 
+            background: rgba(255,255,255,0.7); 
             padding: 10px; 
             border-radius: 5px; 
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
@@ -39,7 +39,7 @@
             font-size: 24px;
             font-weight: bold;
             color: white;
-            background-color: #8a2be2;
+            background-color: rgba(138, 43, 226, 0.8);
             padding: 10px;
             margin: 0 auto;
             width: fit-content;
@@ -51,11 +51,11 @@
             bottom: 20px;
             left: 20px;
             z-index: 1000;
-            background: white;
+            background: rgba(255,255,255,0.8);
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            width: 570px; /* Увеличено на 90% */
+            width: 570px;
             margin-bottom: 20px;
         }
         .panel-header {
@@ -64,7 +64,7 @@
             font-weight: bold;
             font-size: 20px;
             color: white;
-            background-color: #8a2be2;
+            background-color: rgba(138, 43, 226, 0.8);
             padding: 8px;
             border-radius: 5px;
         }
@@ -72,7 +72,7 @@
             display: flex;
             justify-content: space-between;
             margin-top: 15px;
-            background-color: #e6e6fa; /* Светло-фиолетовый */
+            background-color: rgba(230, 230, 250, 0.8);
             padding: 10px;
             border-radius: 5px;
         }
@@ -93,10 +93,13 @@
             margin: 3px 0;
         }
         .category-img {
-            width: 33px; /* Уменьшено в 1.5 раза */
-            height: 33px; /* Уменьшено в 1.5 раза */
+            width: 33px;
+            height: 33px;
             margin-right: 8px;
             object-fit: contain;
+        }
+        .leaflet-popup-content {
+            min-width: 200px;
         }
     </style>
 </head>
@@ -175,17 +178,17 @@
         // Создаем слой с картой OSM
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        });
+        }).addTo(map);
 
         // Функция для определения размеров иконки по ID (уменьшены в 1.5 раза)
         function getIconSize(id) {
             id = parseInt(id);
             
-            if ([8,9,11,15,17,18,19,30].includes(id)) return [100, 33]; // Было 150x50
-            else if ([12,13,14,16].includes(id)) return [67, 67]; // Было 100x100
-            else if (id === 10) return [100, 67]; // Было 150x100
-            else if (id >= 20 && id <= 27) return [67, 33]; // Было 100x50
-            return [33, 33]; // Было 50x50
+            if ([8,9,11,15,17,18,19,30].includes(id)) return [100, 33];
+            else if ([12,13,14,16].includes(id)) return [67, 67];
+            else if (id === 10) return [100, 67];
+            else if (id >= 20 && id <= 27) return [67, 33];
+            return [33, 33];
         }
 
         // Создаем иконки для точек Town
@@ -228,6 +231,31 @@
             return content;
         }
 
+        // Функция для создания содержимого popup
+        function createPopupContent(feature) {
+            if (!feature.properties) return '';
+            
+            let content = `<b>${feature.properties.Город || ''}</b><br><br>`;
+            
+            // Получаем все свойства кроме стандартных (id, Город) и тех, что равны null или пустые
+            const excludedProperties = ['id', 'Город'];
+            let activeProperties = [];
+            
+            for (const [key, value] of Object.entries(feature.properties)) {
+                if (!excludedProperties.includes(key) && value !== null && value !== '' && value !== undefined) {
+                    activeProperties.push(`• ${key}`);
+                }
+            }
+            
+            if (activeProperties.length > 0) {
+                content += activeProperties.join('<br>');
+            } else {
+                content += 'Нет дополнительных данных';
+            }
+            
+            return content;
+        }
+
         // Создаем слои
         var layers = {
             graniza: L.layerGroup(),
@@ -244,7 +272,7 @@
         map.createPane('gSqPane');
         map.createPane('townPane');
         
-        // Устанавливаем z-index для слоев (чем выше значение, тем ближе к зрителю)
+        // Устанавливаем z-index для слоев
         map.getPane('granizaPane').style.zIndex = 400;
         map.getPane('graniza2Pane').style.zIndex = 410;
         map.getPane('gLinePane').style.zIndex = 420;
@@ -302,14 +330,8 @@
                             offset: [20, 0]
                         });
                         
-                        // Добавляем всплывающее окно с дополнительной информацией
-                        let popupContent = `<b>${feature.properties.Город || ''}</b><br>`;
-                        for (const [key, value] of Object.entries(feature.properties)) {
-                            if (key !== 'Город') {
-                                popupContent += `<b>${key}:</b> ${value}<br>`;
-                            }
-                        }
-                        marker.bindPopup(popupContent);
+                        // Добавляем всплывающее окно
+                        marker.bindPopup(createPopupContent(feature));
                     }
                     
                     return marker;
@@ -320,47 +342,36 @@
         let loadedLayers = 0;
         const totalLayers = Object.keys(layerStyles).length;
 
-        // Функция для загрузки слоёв
-        async function loadLayers() {
-            // Загружаем слои в нужном порядке
-            const layersToLoad = [
-                'Graniza.geojson',
-                'Graniza_2.geojson',
-                'G_Line.geojson',
-                'G_Sq.geojson',
-                'Town.geojson'
-            ];
-            
-            for (const url of layersToLoad) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
-                    
-                    const data = await response.json();
-                    const layerKey = url.split('.')[0].toLowerCase().replace('_', '');
-                    
-                    L.geoJSON(data, {
-                        ...layerStyles[url],
-                        onEachFeature: function(feature, layer) {
-                            layers[layerKey].addLayer(layer);
-                        }
-                    });
-                    
-                    loadedLayers++;
-                    updateStatus();
-                } catch (error) {
-                    console.error(`❌ Ошибка загрузки ${url}:`, error);
-                    updateStatus(`Ошибка: ${url}`);
-                }
+        // Функция для загрузки слоёв с обработкой ошибок
+        async function loadLayer(url, layerKey) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Ошибка загрузки ${url}`);
+                
+                const data = await response.json();
+                L.geoJSON(data, {
+                    ...layerStyles[url],
+                    onEachFeature: function(feature, layer) {
+                        layers[layerKey].addLayer(layer);
+                    }
+                }).addTo(map);
+                
+                loadedLayers++;
+                updateStatus();
+                console.log(`✅ ${url} загружен успешно`);
+            } catch (error) {
+                console.error(`❌ Ошибка загрузки ${url}:`, error);
+                updateStatus(`Ошибка: ${url}`);
             }
+        }
 
-            // Добавляем слои на карту в правильном порядке
-            osmLayer.addTo(map);
-            layers.graniza.addTo(map);
-            layers.graniza_2.addTo(map);
-            layers.g_line.addTo(map);
-            layers.g_sq.addTo(map);
-            layers.town.addTo(map);
+        // Функция для загрузки всех слоёв
+        async function loadLayers() {
+            await loadLayer('Graniza.geojson', 'graniza');
+            await loadLayer('Graniza_2.geojson', 'graniza_2');
+            await loadLayer('G_Line.geojson', 'g_line');
+            await loadLayer('G_Sq.geojson', 'g_sq');
+            await loadLayer('Town.geojson', 'town');
         }
 
         function updateStatus(error) {
