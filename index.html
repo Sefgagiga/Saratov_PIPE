@@ -46,17 +46,31 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
-        .info-panel {
+        .legend-toggle {
             position: absolute;
             bottom: 20px;
             left: 20px;
             z-index: 1000;
-            background: rgba(255,255,255,0.8);
+            background-color: rgba(138, 43, 226, 0.8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .info-panel {
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
             width: 570px;
             margin-bottom: 20px;
+            display: none; /* Сначала скрыта */
         }
         .panel-header {
             text-align: center;
@@ -91,6 +105,15 @@
             display: flex;
             align-items: center;
             margin: 3px 0;
+            cursor: pointer;
+            padding: 3px;
+            border-radius: 3px;
+        }
+        .category-item:hover {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+        .category-item.active {
+            background-color: rgba(138, 43, 226, 0.4);
         }
         .category-img {
             width: 33px;
@@ -107,63 +130,64 @@
     <div id="map"></div>
     <div class="title-container">Карта пищевой промышленности Саратовской области</div>
     <div id="status">Загрузка карты</div>
-    <div class="info-panel">
+    <button class="legend-toggle" id="toggleLegend">Показать легенду</button>
+    <div class="info-panel" id="legendPanel">
         <div class="panel-header">Отрасли пищевой промышленности</div>
         <div class="categories-container">
             <div class="category-column">
-                <div class="category-item">
+                <div class="category-item" data-category="Хлебобулочная">
                     <img src="ПП/Хлебобулочная.png" class="category-img" alt="Хлебобулочная">
                     <span>Хлебобулочная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Мукольно-крупяная">
                     <img src="ПП/Мукольно-крупяная.png" class="category-img" alt="Мукольно-крупяная">
                     <span>Мукольно-крупяная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Молочная">
                     <img src="ПП/Молочная.png" class="category-img" alt="Молочная">
                     <span>Молочная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Маслосыродельная">
                     <img src="ПП/Маслосыродельная.png" class="category-img" alt="Маслосыродельная">
                     <span>Маслосыродельная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Мясная">
                     <img src="ПП/Мясная.png" class="category-img" alt="Мясная">
                     <span>Мясная</span>
                 </div>
             </div>
             <div class="category-column">
-                <div class="category-item">
+                <div class="category-item" data-category="Сахарная">
                     <img src="ПП/Сахарная.png" class="category-img" alt="Сахарная">
                     <span>Сахарная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Масложировая">
                     <img src="ПП/Масложировая.png" class="category-img" alt="Масложировая">
                     <span>Масложировая</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Плодово-овощная">
                     <img src="ПП/Плодово-овощная.png" class="category-img" alt="Плодово-овощная">
                     <span>Плодово-овощная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Консервная">
                     <img src="ПП/Консервная.png" class="category-img" alt="Консервная">
                     <span>Консервная</span>
                 </div>
             </div>
             <div class="category-column">
-                <div class="category-item">
+                <div class="category-item" data-category="Пивоваренная">
                     <img src="ПП/Пивоваренная.png" class="category-img" alt="Пивоваренная">
                     <span>Пивоваренная</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Производство безалкогольных напитков">
                     <img src="ПП/Производство безалкогольных напитков.png" class="category-img" alt="Производство безалкогольных напитков">
                     <span>Производство безалкогольных напитков</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Кондитерская">
                     <img src="ПП/Кондитерская.png" class="category-img" alt="Кондитерская">
                     <span>Кондитерская</span>
                 </div>
-                <div class="category-item">
+                <div class="category-item" data-category="Многопрофильная">
                     <img src="ПП/Многопрофильная.png" class="category-img" alt="Многопрофильная">
                     <span>Многопрофильная</span>
                 </div>
@@ -173,12 +197,21 @@
     
     <script>
         // Инициализация карты с центром на Саратове и масштабом 8
-        var map = L.map('map').setView([51.822, 46.443], 8);
+        var map = L.map('map').setView([51.822, 46.443], 9);
         
         // Создаем слой с картой OSM
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        // Переменные для хранения данных и маркеров
+        var townMarkers = [];
+        var activeFilters = [];
+        var allCategories = [
+            'Хлебобулочная', 'Мукольно-крупяная', 'Молочная', 'Маслосыродельная', 'Мясная',
+            'Сахарная', 'Масложировая', 'Плодово-овощная', 'Консервная',
+            'Пивоваренная', 'Производство безалкогольных напитков', 'Кондитерская', 'Многопрофильная'
+        ];
 
         // Функция для определения размеров иконки по ID (уменьшены в 1.5 раза)
         function getIconSize(id) {
@@ -209,14 +242,9 @@
             if (!feature.properties) return '';
             
             let content = `<div style="font-weight:bold;margin-bottom:5px;">${feature.properties.Город || ''}</div>`;
-            const categories = [
-                'Хлебобулочная', 'Мукольно-крупяная', 'Молочная', 'Маслосыродельная', 'Мясная',
-                'Сахарная', 'Масложировая', 'Плодово-овощная', 'Консервная',
-                'Пивоваренная', 'Производство безалкогольных напитков', 'Кондитерская', 'Многопрофильная'
-            ];
             
             let activeCategories = [];
-            for (const category of categories) {
+            for (const category of allCategories) {
                 if (feature.properties[category] === '1') {
                     activeCategories.push(category);
                 }
@@ -254,6 +282,34 @@
             }
             
             return content;
+        }
+
+        // Функция для фильтрации маркеров по категориям
+        function filterMarkers() {
+            townMarkers.forEach(marker => {
+                const feature = marker.feature;
+                let showMarker = activeFilters.length === 0; // Показываем все, если нет фильтров
+                
+                if (!showMarker) {
+                    // Проверяем, есть ли у маркера хотя бы одна активная категория
+                    for (const category of activeFilters) {
+                        if (feature.properties[category] === '1') {
+                            showMarker = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (showMarker) {
+                    if (!map.hasLayer(marker)) {
+                        marker.addTo(map);
+                    }
+                } else {
+                    if (map.hasLayer(marker)) {
+                        marker.remove();
+                    }
+                }
+            });
         }
 
         // Создаем слои
@@ -320,6 +376,9 @@
                         pane: 'townPane'
                     });
                     
+                    // Сохраняем ссылку на feature в маркере
+                    marker.feature = feature;
+                    
                     // Добавляем всплывающую подсказку при наведении
                     if (feature.properties) {
                         marker.bindTooltip(createTooltipContent(feature), {
@@ -333,6 +392,9 @@
                         // Добавляем всплывающее окно
                         marker.bindPopup(createPopupContent(feature));
                     }
+                    
+                    // Сохраняем маркер для фильтрации
+                    townMarkers.push(marker);
                     
                     return marker;
                 }
@@ -386,6 +448,39 @@
                 }
             }
         }
+
+        // Управление легендой
+        document.getElementById('toggleLegend').addEventListener('click', function() {
+            const legendPanel = document.getElementById('legendPanel');
+            if (legendPanel.style.display === 'block') {
+                legendPanel.style.display = 'none';
+                this.textContent = 'Показать легенду';
+            } else {
+                legendPanel.style.display = 'block';
+                this.textContent = 'Скрыть легенду';
+            }
+        });
+
+        // Фильтрация по категориям
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                const index = activeFilters.indexOf(category);
+                
+                if (index === -1) {
+                    // Добавляем фильтр
+                    activeFilters.push(category);
+                    this.classList.add('active');
+                } else {
+                    // Удаляем фильтр
+                    activeFilters.splice(index, 1);
+                    this.classList.remove('active');
+                }
+                
+                // Применяем фильтры
+                filterMarkers();
+            });
+        });
 
         // Запуск загрузки
         loadLayers();
