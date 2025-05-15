@@ -197,7 +197,7 @@
     
     <script>
         // Инициализация карты с центром на Саратове и масштабом 8
-        var map = L.map('map').setView([51.822, 46.443], 8);
+        var map = L.map('map').setView([51.822, 46.443], 9);
         
         // Создаем слой с картой OSM
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
