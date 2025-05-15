@@ -70,7 +70,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
             width: 570px;
             margin-bottom: 20px;
-            display: none; /* Сначала скрыта */
+            display: none;
         }
         .panel-header {
             text-align: center;
@@ -108,6 +108,7 @@
             cursor: pointer;
             padding: 3px;
             border-radius: 3px;
+            transition: background-color 0.2s;
         }
         .category-item:hover {
             background-color: rgba(138, 43, 226, 0.2);
@@ -196,8 +197,8 @@
     </div>
     
     <script>
-        // Инициализация карты с центром на Саратове и масштабом 8
-        var map = L.map('map').setView([51.822, 46.443], 9);
+        // Инициализация карты с центром на Саратове и масштабом 7
+        var map = L.map('map').setView([51.822, 46.443], 7);
         
         // Создаем слой с картой OSM
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -245,7 +246,7 @@
             
             let activeCategories = [];
             for (const category of allCategories) {
-                if (feature.properties[category] === '1') {
+                if (feature.properties[category] && feature.properties[category] !== '0') {
                     activeCategories.push(category);
                 }
             }
@@ -265,12 +266,12 @@
             
             let content = `<b>${feature.properties.Город || ''}</b><br><br>`;
             
-            // Получаем все свойства кроме стандартных (id, Город) и тех, что равны null или пустые
+            // Получаем все свойства кроме стандартных (id, Город) и тех, что равны 0, null или пустые
             const excludedProperties = ['id', 'Город'];
             let activeProperties = [];
             
             for (const [key, value] of Object.entries(feature.properties)) {
-                if (!excludedProperties.includes(key) && value !== null && value !== '' && value !== undefined) {
+                if (!excludedProperties.includes(key) && value && value !== '0') {
                     activeProperties.push(`• ${key}`);
                 }
             }
@@ -284,16 +285,16 @@
             return content;
         }
 
-        // Функция для фильтрации маркеров по категориям
+        // Функция для фильтрации маркеров по категориям (показывает точки с ненулевыми значениями)
         function filterMarkers() {
             townMarkers.forEach(marker => {
                 const feature = marker.feature;
                 let showMarker = activeFilters.length === 0; // Показываем все, если нет фильтров
                 
                 if (!showMarker) {
-                    // Проверяем, есть ли у маркера хотя бы одна активная категория
+                    // Проверяем, есть ли у маркера хотя бы одна активная категория с ненулевым значением
                     for (const category of activeFilters) {
-                        if (feature.properties[category] === '1') {
+                        if (feature.properties[category] && feature.properties[category] !== '0') {
                             showMarker = true;
                             break;
                         }
@@ -461,7 +462,7 @@
             }
         });
 
-        // Фильтрация по категориям
+        // Фильтрация по категориям (ненулевые значения)
         document.querySelectorAll('.category-item').forEach(item => {
             item.addEventListener('click', function() {
                 const category = this.getAttribute('data-category');
@@ -477,7 +478,7 @@
                     this.classList.remove('active');
                 }
                 
-                // Применяем фильтры
+                // Применяем фильтры (показываем точки с ненулевыми значениями)
                 filterMarkers();
             });
         });
