@@ -125,6 +125,25 @@
         .leaflet-popup-content {
             min-width: 200px;
         }
+        .icon-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .icon-toggle:hover {
+            background-color: rgba(255,255,255,0.7);
+        }
+        .icon-toggle img {
+            width: 40px;
+            height: 40px;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +151,9 @@
     <div class="title-container">Карта пищевой промышленности Саратовской области</div>
     <div id="status">Загрузка карты</div>
     <button class="legend-toggle" id="toggleLegend">Показать легенду</button>
+    <button class="icon-toggle" id="toggleIcons" title="Переключить иконки">
+        <img src="ALT.png" alt="Переключить иконки">
+    </button>
     <div class="info-panel" id="legendPanel">
         <div class="panel-header">Отрасли пищевой промышленности</div>
         <div class="categories-container">
@@ -214,6 +236,9 @@
             'Пивоваренная', 'Производство безалкогольных напитков', 'Кондитерская', 'Многопрофильная'
         ];
 
+        // Флаг для альтернативных иконок
+        var useAltIcons = false;
+
         // Функция для определения размеров иконки по ID (уменьшены в 1.5 раза)
         function getIconSize(id) {
             id = parseInt(id);
@@ -229,12 +254,29 @@
         function createCustomIcon(feature) {
             const id = feature.properties.id || 1;
             const iconSize = getIconSize(id);
+            const iconFolder = useAltIcons ? 'Значки_ALT' : 'Значки';
             
             return L.icon({
-                iconUrl: `Значки/${id}.png`,
+                iconUrl: `${iconFolder}/${id}.png`,
                 iconSize: iconSize,
                 iconAnchor: [iconSize[0]/2, iconSize[1]/2],
                 popupAnchor: [0, -iconSize[1]/2]
+            });
+        }
+
+        // Функция для обновления всех иконок на карте
+        function updateAllIcons() {
+            townMarkers.forEach(marker => {
+                if (marker.feature) {
+                    marker.setIcon(createCustomIcon(marker.feature));
+                }
+            });
+
+            // Обновляем иконки в легенде
+            document.querySelectorAll('.category-img').forEach(img => {
+                const category = img.alt;
+                const imgFolder = useAltIcons ? 'ПП_ALT' : 'ПП';
+                img.src = `${imgFolder}/${category}.png`;
             });
         }
 
@@ -460,6 +502,15 @@
                 legendPanel.style.display = 'block';
                 this.textContent = 'Скрыть легенду';
             }
+        });
+
+        // Переключение между обычными и альтернативными иконками
+        document.getElementById('toggleIcons').addEventListener('click', function() {
+            useAltIcons = !useAltIcons;
+            updateAllIcons();
+            
+            // Меняем подсказку при наведении
+            this.title = useAltIcons ? 'Вернуть обычные иконки' : 'Переключить на альтернативные иконки';
         });
 
         // Фильтрация по категориям (ненулевые значения)
